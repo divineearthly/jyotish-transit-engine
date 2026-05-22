@@ -1,6 +1,6 @@
-# 🕉️ Jyotish Transit Engine
+# Jyotish Transit Engine
 
-**Offline Vedic Astrology — Gochar (Planetary Transit) Calculator**
+Offline Vedic Astrology - Gochar (Planetary Transit) Calculator
 
 Computes current planetary positions against natal chart using Surya Siddhanta mathematics. Runs on ARM64 phones with zero internet.
 
@@ -14,3 +14,8 @@ Computes current planetary positions against natal chart using Surya Siddhanta m
 - JSON output for API use
 
 ## Quick Start
+pip install ephem
+python3 src/jyotish_transit.py
+
+## Author
+Joydeep Das - Silchar, Assam, India
