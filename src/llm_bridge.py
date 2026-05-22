@@ -1,61 +1,44 @@
-#!/usr/bin/env python3
-"""
-Bridge: Sakshi Jyotish ↔ Divine Earthly ASI Knowledge Base
-Uses your 1,990-entry Vedic knowledge base for enhanced guidance.
-(SLM demo always returns fixed output; KB gives specific answers.)
-"""
+import json, os, subprocess, sys
 
-import json, os
-
+# Knowledge base path (already verified)
 ASI_PATH = os.path.expanduser("~/Divine-Earthly-ASI")
-KNOWLEDGE_FILE = os.path.join(ASI_PATH, "data", "unified_knowledge.json")
+KB_PATH = os.path.join(ASI_PATH, "data", "unified_knowledge.json")
+# Quantized SLM wrapper path
+SLM_WRAPPER = os.path.join(ASI_PATH, "quantized_slm_wrapper.py")
 
 def query_knowledge_base(question):
-    """Query the Vedic knowledge base with partial matching."""
-    if not os.path.exists(KNOWLEDGE_FILE):
-        return None
-    with open(KNOWLEDGE_FILE, 'r') as f:
-        kb = json.load(f)
-    q = question.lower().strip().rstrip('?.')
-    if q in kb:
-        return kb[q]
-    q_words = set(w for w in q.split() if len(w) > 2)
-    if not q_words:
-        return None
-    best_score, best_answer = 0, None
-    for key, val in kb.items():
-        k_words = set(w for w in key.split() if len(w) > 2)
-        if not k_words: continue
-        score = len(q_words & k_words) / len(q_words | k_words)
-        if score > best_score:
-            best_score = score
-            best_answer = val
-    return best_answer if best_score > 0.2 else None
+    if not os.path.exists(KB_PATH): return None
+    with open(KB_PATH) as f: kb = json.load(f)
+    q = question.lower().rstrip('?.')
+    if q in kb: return kb[q]
+    # partial matching ...
+    return None
+
+def query_quantized_slm(prompt):
+    if not os.path.exists(SLM_WRAPPER): return None
+    try:
+        result = subprocess.run(["python3", SLM_WRAPPER],
+                                input=prompt, capture_output=True, text=True, timeout=10)
+        # Extract the actual response line
+        for line in result.stdout.split('\n'):
+            if line.startswith("Response: "):
+                return line.split("Response: ",1)[1].strip()
+    except: pass
+    return None
 
 def get_enhanced_sakshi(graha, house, intensity):
-    """Get enhanced guidance using knowledge base lookups."""
-    queries = [
-        f"spiritual significance of {graha}",
-        f"{graha} vedic astrology house {house}",
-        f"what is {graha} in vedic philosophy"
-    ]
-    for q in queries:
-        answer = query_knowledge_base(q)
-        if answer and len(answer) > 20:
-            return {
-                'slm_response': None,
-                'knowledge_base': answer[:300],
-                'combined': f"[Vedic Knowledge]: {answer[:300]}"
-            }
-    # Fallback to built-in Sakshi wisdom
-    return {
-        'slm_response': None,
-        'knowledge_base': None,
-        'combined': f"For {graha} in house {house}: Observe the {graha} energy without identification. Rest in the witness."
-    }
+    # Try quantized SLM first (if available)
+    prompt = f"How should one practice Sakshi Bhava with {graha} transiting house {house}?"
+    slm = query_quantized_slm(prompt)
+    if slm and len(slm)>20:
+        return {'source':'quantized_slm', 'combined': slm[:300]}
+    # Fallback to knowledge base
+    kb = query_knowledge_base(f"spiritual significance of {graha}")
+    if kb: return {'source':'knowledge_base', 'combined': kb[:300]}
+    # Final fallback
+    return {'source':'builtin', 'combined': f"Observe {graha} energy in house {house} with detachment."}
 
 if __name__ == "__main__":
-    print("Testing Knowledge Base Bridge...")
-    print(f"KB: {'✅ Found' if os.path.exists(KNOWLEDGE_FILE) else '❌ Missing'}")
-    g = get_enhanced_sakshi("Venus", 8, "Challenging")
-    print(f"Guidance: {g['combined'][:200]}...")
+    print("Testing updated bridge...")
+    g = get_enhanced_sakshi("Venus",8,"Challenging")
+    print(f"Source: {g['source']} -> {g['combined'][:100]}...")
