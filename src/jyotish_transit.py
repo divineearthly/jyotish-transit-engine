@@ -124,7 +124,7 @@ class JyotishTransit:
     
     def get_current_transit(self) -> Dict:
         """Get current planetary positions (Gochar)."""
-        now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        now = datetime.now(datetime.UTC) + timedelta(hours=5, minutes=30)
         return self._calculate_positions(now)
     
     def _vedic_aspects(self, planet: str, house: int) -> Dict:
