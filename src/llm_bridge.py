@@ -9,6 +9,8 @@ import subprocess, json, os
 ASI_PATH = os.path.expanduser("~/Divine-Earthly-ASI")
 LLM_ENGINE = os.path.join(ASI_PATH, "vedic_inference_engine")  # Root, not engines/
 KNOWLEDGE_FILE = os.path.join(ASI_PATH, "unified_knowledge.json")
+if not os.path.exists(KNOWLEDGE_FILE):
+    KNOWLEDGE_FILE = os.path.join(ASI_PATH, "data/knowledge/unified_knowledge.json")
 
 def query_vedic_slm(prompt):
     """Send query to your working Vedic SLM."""
