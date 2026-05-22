@@ -2,24 +2,20 @@
 """
 🕉️ Daily Sakshi Reminder — Morning Practice Generator
 Based on current transits, generates your daily witness-consciousness practice.
-Run at sunrise for guidance through the day.
+Now with SLM-enhanced deep guidance from your Vedic inference engine.
 """
 
 import sys
 import os
 from datetime import datetime
 
-# Add src to path
 sys.path.insert(0, os.path.dirname(__file__))
 from sakshi_jyotish import SakshiJyotish
 
 def generate_daily_practice(birth_date="1993-12-24", birth_time="05:40", lat=24.83, lon=92.80):
-    """Generate morning Sakshi practice based on today's transits."""
-    
     sakshi = SakshiJyotish(birth_date, birth_time, lat, lon)
     interps = [sakshi.get_sakshi_interpretation(t) for t in sakshi.transits]
     
-    # Find the most intense transit for today's focus
     priority = {'Challenging': 4, 'High': 3, 'Benefic': 2, 'Strong': 2, 'Moderate': 1, 'Low': 0}
     interps.sort(key=lambda x: priority.get(x['intensity'], 0), reverse=True)
     
@@ -35,7 +31,6 @@ def generate_daily_practice(birth_date="1993-12-24", birth_time="05:40", lat=24.
     print("Ask: 'Who is aware of this breath?'")
     print("Rest in the awareness, not the breath.\n")
     
-    # Primary practice (most intense transit)
     primary = interps[0]
     print(f"🔥 TODAY'S PRIMARY PRACTICE: {primary['graha']} ({primary['sanskrit']})")
     print("═" * 50)
@@ -48,14 +43,12 @@ def generate_daily_practice(birth_date="1993-12-24", birth_time="05:40", lat=24.
     print(f"\n🧘 Concrete practice:")
     print(f"   {primary['daily_practice']}")
     
-    # Secondary practice
     if len(interps) > 1:
         secondary = interps[1]
         print(f"\n\n🌟 SECONDARY SUPPORT: {secondary['graha']} ({secondary['sanskrit']})")
         print("═" * 50)
         print(f"Practice: {secondary['daily_practice']}")
     
-    # Evening reflection
     print(f"\n\n🌙 EVENING REFLECTION")
     print("═" * 50)
     print("Before sleep, ask three questions:")
@@ -63,12 +56,22 @@ def generate_daily_practice(birth_date="1993-12-24", birth_time="05:40", lat=24.
     print("2. Where did I remember to witness?")
     print("3. Who is asking these questions?")
     
+    # SLM-ENHANCED DEEP GUIDANCE
+    try:
+        from llm_bridge import get_enhanced_sakshi
+        enhanced = get_enhanced_sakshi(primary['graha'], primary['house'], primary['intensity'])
+        if enhanced and enhanced.get('combined'):
+            print(f"\n\n🧠 SLM-ENHANCED DEEP GUIDANCE")
+            print("═" * 50)
+            print(enhanced['combined'][:400])
+    except Exception:
+        pass  # SLM not available, gracefully skip
+    
     print(f"\n\n🕉️ SAKSHI REMINDER")
     print("═" * 50)
     print(f"{sakshi.knowledge['root']['essence']}")
     print(f"\n📖 {sakshi.knowledge['root']['maha_vakya']}")
     
-    # Return structured data for API use
     return {
         'date': today,
         'primary_graha': primary['graha'],
@@ -99,27 +102,3 @@ if __name__ == "__main__":
             i += 1
     
     generate_daily_practice(birth_date, birth_time, lat, lon)
-
-# ============================================================
-# ENHANCED: Add SLM-powered deep guidance
-# ============================================================
-def add_slm_guidance(primary):
-    """Append SLM-enhanced guidance if available."""
-    try:
-        from llm_bridge import get_enhanced_sakshi
-        enhanced = get_enhanced_sakshi(
-            primary['graha'], 
-            primary['house'], 
-            primary['intensity']
-        )
-        if enhanced and enhanced.get('combined'):
-            print(f"\n\n🧠 ENHANCED GUIDANCE (Vedic SLM)")
-            print("═" * 50)
-            print(f"{enhanced['combined'][:300]}")
-            return True
-    except:
-        pass
-    return False
-
-# Add SLM guidance right after the primary practice section
-# (This gets called at the end of generate_daily_practice)
