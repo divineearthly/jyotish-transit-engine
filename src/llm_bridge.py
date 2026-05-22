@@ -1,36 +1,24 @@
-import subprocess, os, json
+import subprocess, os
 
 ASI = os.path.expanduser("~/Divine-Earthly-ASI")
-KB = os.path.join(ASI, "data", "unified_knowledge.json")
-GEN = os.path.join(ASI, "generate_quantized.py")
-MODEL = os.path.join(ASI, "vedic_tiny_quantized.vedic")
+MODEL = os.path.join(ASI, "vedic_trained.vedic")
 
-def query_light(prompt):
-    if not os.path.exists(GEN):
+def query_vedic_model(prompt):
+    if not os.path.exists(MODEL):
         return None
     try:
-        r = subprocess.run(["python3", GEN, MODEL], input=prompt,
-                           capture_output=True, text=True, timeout=15)
+        r = subprocess.run(["./vedic_inference_engine", MODEL],
+                           input=prompt, capture_output=True, text=True, timeout=10)
         for line in r.stdout.split('\n'):
             if line.startswith("A:"):
                 return line[2:].strip()
     except:
         return None
-
-def query_kb(q):
-    if not os.path.exists(KB): return None
-    with open(KB) as f: kb = json.load(f)
-    q = q.lower().rstrip('?.')
-    if q in kb: return kb[q]
     return None
 
 def get_enhanced_sakshi(graha, house, intensity):
-    # Try lightweight quantized generator
-    ans = query_light(f"Sakshi Bhava for {graha} in house {house}")
-    if ans and len(ans)>15:
-        return {'source':'quantized_gen', 'combined': ans[:300]}
-    # Fallback to knowledge base
-    kb = query_kb(f"spiritual significance of {graha}")
-    if kb:
-        return {'source':'knowledge_base', 'combined': kb[:300]}
-    return {'source':'builtin', 'combined': f"Observe {graha} energy in house {house}. The witness is free."}
+    prompt = f"spiritual lesson of {graha} transiting house {house}"
+    wisdom = query_vedic_model(prompt)
+    if wisdom:
+        return {'source': 'vedic_trained_model', 'combined': wisdom[:600]}
+    return {'source': 'builtin', 'combined': f"Observe {graha} energy in house {house}. The witness is free."}
